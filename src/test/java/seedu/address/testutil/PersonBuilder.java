@@ -11,7 +11,6 @@ import seedu.address.model.person.Phone;
 import seedu.address.model.person.Remark;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
-import seedu.address.ui.PersonCard;
 
 /**
  * A utility class to help with building Person objects.
@@ -98,7 +97,7 @@ public class PersonBuilder {
     /**
      * Sets the {@code Remark} of the {@code Person} that we are building.
      */
-    public PersonBuilder withRemark (String remark) {
+    public PersonBuilder withRemark(String remark) {
         this.remark = new Remark(remark);
         return this;
     }
