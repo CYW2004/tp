@@ -8,11 +8,35 @@ start
 'Since the beta syntax does not support placing the condition outside the
 'diamond we place it as the true branch instead.
 
-if () then ([command commits AddressBook])
-    :Purge redundant states;
-    :Save AddressBook to
-    addressBookStateList;
-else ([else])
+if (Command type?) then ([add])
+  :Create new Person object;
+  :Save updated person to personList;
+  --> "Merge";
+elseif ([delete])
+  :Identify person by INDEX;
+  :Remove person from personList;
+  --> "Merge";
+elseif ([edit])
+  :Identify person by INDEX;
+  :Update fields (name, phone, email, etc.);
+  :Save modified person to personList;
+  --> "Merge";
+elseif ([addevent])
+  :Create new Event (EVENTID, DATE, DESC);
+  :Save event to eventList;
+  --> "Merge";
+elseif ([addtask])
+  :Create new Task (TITLE, DEADLINE);
+  :Save task to taskList;
+  --> "Merge";
+elseif ([budget set])
+  :Set total amount and duration;
+  :Update budget records;
+  --> "Merge";
+else ([other])
+  :Execute other command logic;
+  --> "Merge";
 endif
+
 stop
 @enduml

@@ -13,6 +13,7 @@ box Model
 participant ":Model" as Model
 end box
 
+[-> LogicManager : execute("undo")
 User -> LogicManager : execute("undo")
 activate LogicManager
 
