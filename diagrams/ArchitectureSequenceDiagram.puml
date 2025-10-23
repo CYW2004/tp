@@ -4,7 +4,9 @@ skinparam ArrowFontStyle plain
 
 Actor User as user USER_COLOR
 Participant ":UI" as ui UI_COLOR
-Participant ":Logic" as logic LOGIC_COLOR
+Participant ":LogicManager" as logic LOGIC_COLOR
+Participant ":AddressBookParser" as parser LOGIC_COLOR_T1
+Participant ":DeleteCommand" as command LOGIC_COLOR_T2
 Participant ":Model" as model MODEL_COLOR
 Participant ":Storage" as storage STORAGE_COLOR
 
@@ -14,11 +16,28 @@ activate ui UI_COLOR
 ui -[UI_COLOR]> logic : execute("delete 1")
 activate logic LOGIC_COLOR
 
-logic -[LOGIC_COLOR]> model : deletePerson(p)
+logic -[LOGIC_COLOR]> parser : parseCommand("delete 1")
+activate parser LOGIC_COLOR_T1
+
+parser --[LOGIC_COLOR_T1]> logic : DeleteCommand
+deactivate parser
+
+logic -[LOGIC_COLOR]> model : commit()
+activate model MODEL_COLOR
+model --[MODEL_COLOR]> logic
+deactivate model
+
+logic -[LOGIC_COLOR]> command : execute(model)
+activate command LOGIC_COLOR_T2
+
+command -[LOGIC_COLOR_T2]> model : deletePerson(p)
 activate model MODEL_COLOR
 
-model -[MODEL_COLOR]-> logic
+model --[MODEL_COLOR]> command
 deactivate model
+
+command --[LOGIC_COLOR_T2]> logic : CommandResult
+deactivate command
 
 logic -[LOGIC_COLOR]> storage : saveAddressBook(addressBook)
 activate storage STORAGE_COLOR
@@ -31,7 +50,7 @@ deactivate storage
 storage --[STORAGE_COLOR]> logic
 deactivate storage
 
-logic --[LOGIC_COLOR]> ui
+logic --[LOGIC_COLOR]> ui : CommandResult
 deactivate logic
 
 ui--[UI_COLOR]> user

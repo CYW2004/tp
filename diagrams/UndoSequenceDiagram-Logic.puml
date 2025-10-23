@@ -1,46 +1,55 @@
 @startuml
-!include style.puml
 skinparam ArrowFontStyle plain
 
-box Logic LOGIC_COLOR_T1
-participant ":LogicManager" as LogicManager LOGIC_COLOR
-participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
-participant "u:UndoCommand" as UndoCommand LOGIC_COLOR
+actor User
+
+box Logic
+participant ":LogicManager" as LogicManager
+participant ":AddressBookParser" as AddressBookParser
+participant "u:UndoCommand" as UndoCommand
 end box
 
-box Model MODEL_COLOR_T1
-participant ":Model" as Model MODEL_COLOR
+box Model
+participant ":Model" as Model
 end box
-[-> LogicManager : execute(undo)
+
+User -> LogicManager : execute("undo")
 activate LogicManager
 
-LogicManager -> AddressBookParser : parseCommand(undo)
+LogicManager -> AddressBookParser : parseCommand("undo")
 activate AddressBookParser
 
 create UndoCommand
 AddressBookParser -> UndoCommand
 activate UndoCommand
-
 UndoCommand --> AddressBookParser
 deactivate UndoCommand
 
 AddressBookParser --> LogicManager : u
 deactivate AddressBookParser
 
-LogicManager -> UndoCommand : execute()
+LogicManager -> UndoCommand : execute(model)
 activate UndoCommand
 
-UndoCommand -> Model : undoAddressBook()
+UndoCommand -> Model : canUndo()
 activate Model
-
-Model --> UndoCommand
+Model --> UndoCommand : undoAvailable
 deactivate Model
 
-UndoCommand --> LogicManager : result
-deactivate UndoCommand
-UndoCommand -[hidden]-> LogicManager : result
-destroy UndoCommand
+alt canUndo() is false
+  UndoCommand --> LogicManager : CommandException
+  deactivate UndoCommand
+  LogicManager --> User : CommandException
+else canUndo() is true
+  UndoCommand -> Model : undo()
+  activate Model
+  Model --> UndoCommand : success
+  deactivate Model
+  UndoCommand --> LogicManager : CommandResult
+  deactivate UndoCommand
+  LogicManager --> User : CommandResult
+end
 
-[<--LogicManager
+destroy UndoCommand
 deactivate LogicManager
 @enduml

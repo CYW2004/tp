@@ -141,7 +141,7 @@
         "events-addevent-deleteevent": "Events : addevent, deleteevent",
         "marking-attendance-markattendance": "Marking attendance : markattendance",
         "adding-attendance-addattendance": "Adding attendance : addattendance",
-        "viewing-attendance-viewattendance": "Viewing attendance : viewattendance",
+        "viewing-attendees-viewattendees": "Viewing attendees : viewattendees",
         "showing-attendance-summary-showattendance": "Showing attendance summary : showattendance",
         "tasks-addtask-deletetask-marktask-unmarktask": "Tasks : addtask, deletetask, marktask, unmarktask",
         "undo-redo-undo-redo": "Undo/Redo : undo, redo",

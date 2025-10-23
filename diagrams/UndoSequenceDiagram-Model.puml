@@ -3,21 +3,48 @@
 skinparam ArrowFontStyle plain
 
 box Model MODEL_COLOR_T1
-participant ":Model" as Model MODEL_COLOR
+participant ":ModelManager" as ModelManager MODEL_COLOR
 participant ":VersionedAddressBook" as VersionedAddressBook MODEL_COLOR
+participant ":FilteredList<Person>" as FilteredPersons MODEL_COLOR_T1
+participant ":FilteredList<Event>" as FilteredEvents MODEL_COLOR_T1
+participant ":FilteredList<Task>" as FilteredTasks MODEL_COLOR_T1
 end box
 
-[-> Model : undoAddressBook()
-activate Model
+[-> ModelManager : undo()
+activate ModelManager
 
-Model -> VersionedAddressBook : undo()
+ModelManager -> ModelManager : logger.info("Attempting to undo last operation")
+ModelManager -> VersionedAddressBook : undo()
 activate VersionedAddressBook
 
-VersionedAddressBook -> VersionedAddressBook :resetData(ReadOnlyAddressBook)
-VersionedAddressBook --> Model :
+alt addressBookStateHistory is not empty
+    VersionedAddressBook -> VersionedAddressBook : save current state to redo history
+    VersionedAddressBook -> VersionedAddressBook : pop previous state from undo history
+    VersionedAddressBook -> VersionedAddressBook : resetData(previousState)
+    VersionedAddressBook --> ModelManager : true
+    ModelManager -> ModelManager : logger.info("Undo successful. Updating filtered lists")
+else addressBookStateHistory is empty
+    VersionedAddressBook --> ModelManager : false
+    ModelManager -> ModelManager : logger.warning("Undo failed - no operations to undo")
+else **Exception occurs**
+    VersionedAddressBook --> ModelManager : **Exception thrown**
+    ModelManager -> ModelManager : logger.severe("Exception during undo: " + exception.getMessage())
+    ModelManager --> [ : **Exception propagated**
+    deactivate ModelManager
+    deactivate VersionedAddressBook
+    stop
+end
 deactivate VersionedAddressBook
 
-[<-- Model
-deactivate Model
+alt undo was successful
+    ModelManager -> FilteredPersons : updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)
+    ModelManager -> FilteredEvents : updateFilteredEventList(PREDICATE_SHOW_ALL_EVENTS)
+    ModelManager -> FilteredTasks : updateFilteredTaskList(PREDICATE_SHOW_ALL_TASKS)
+    ModelManager -> ModelManager : logger.fine("Filtered lists updated. Remaining undo operations: " + addressBook.getUndoCount())
+end
+
+ModelManager --> [ : boolean result
+deactivate ModelManager
 
 @enduml
+

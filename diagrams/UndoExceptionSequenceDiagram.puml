@@ -1,0 +1,90 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Model MODEL_COLOR_T1
+participant ":ModelManager" as ModelManager MODEL_COLOR
+participant ":VersionedAddressBook" as VersionedAddressBook MODEL_COLOR
+participant ":FilteredList<Person>" as FilteredPersons MODEL_COLOR_T1
+participant ":FilteredList<Event>" as FilteredEvents MODEL_COLOR_T1
+participant ":FilteredList<Task>" as FilteredTasks MODEL_COLOR_T1
+end box
+
+note over ModelManager : Exception Handling Scenarios
+
+== Scenario 1: NullPointerException during undo ==
+
+[-> ModelManager : undo()
+activate ModelManager
+
+ModelManager -> ModelManager : logger.info("Attempting to undo last operation")
+ModelManager -> VersionedAddressBook : undo()
+activate VersionedAddressBook
+
+VersionedAddressBook -> VersionedAddressBook : save current state to redo history
+VersionedAddressBook -> VersionedAddressBook : pop previous state from undo history
+VersionedAddressBook -> VersionedAddressBook : resetData(previousState)
+
+note over VersionedAddressBook : Exception occurs during resetData()
+VersionedAddressBook -> VersionedAddressBook : **NullPointerException thrown**
+VersionedAddressBook --> ModelManager : **Exception propagated**
+
+ModelManager -> ModelManager : logger.severe("Exception during undo operation: " + exception.getMessage())
+ModelManager --> [ : **Exception thrown**
+deactivate ModelManager
+deactivate VersionedAddressBook
+
+== Scenario 2: State corruption detection ==
+
+[-> ModelManager : undo()
+activate ModelManager
+
+ModelManager -> ModelManager : logger.info("Attempting to undo last operation")
+ModelManager -> VersionedAddressBook : undo()
+activate VersionedAddressBook
+
+VersionedAddressBook -> VersionedAddressBook : save current state to redo history
+VersionedAddressBook -> VersionedAddressBook : pop previous state from undo history
+
+note over VersionedAddressBook : Corrupted state detected
+VersionedAddressBook -> VersionedAddressBook : **IllegalStateException: Corrupted state detected**
+VersionedAddressBook --> ModelManager : **Exception propagated**
+
+ModelManager -> ModelManager : logger.severe("State corruption detected during undo: " + exception.getMessage())
+ModelManager -> ModelManager : logger.warning("Attempting to recover from corrupted state")
+ModelManager -> VersionedAddressBook : rollbackLastCommit()
+VersionedAddressBook -> VersionedAddressBook : remove corrupted state from history
+VersionedAddressBook --> ModelManager : rollback completed
+
+ModelManager -> ModelManager : logger.info("Recovery completed. Undo history cleaned")
+ModelManager --> [ : **Exception thrown (recovery attempted)**
+deactivate ModelManager
+deactivate VersionedAddressBook
+
+== Scenario 3: Memory exhaustion during state saving ==
+
+[-> ModelManager : undo()
+activate ModelManager
+
+ModelManager -> ModelManager : logger.info("Attempting to undo last operation")
+ModelManager -> VersionedAddressBook : undo()
+activate VersionedAddressBook
+
+VersionedAddressBook -> VersionedAddressBook : save current state to redo history
+
+note over VersionedAddressBook : OutOfMemoryError during state cloning
+VersionedAddressBook -> VersionedAddressBook : **OutOfMemoryError: Cannot create state copy**
+VersionedAddressBook --> ModelManager : **Error propagated**
+
+ModelManager -> ModelManager : logger.severe("Memory exhaustion during undo: " + error.getMessage())
+ModelManager -> ModelManager : logger.warning("Clearing undo history to free memory")
+ModelManager -> VersionedAddressBook : clearHistory()
+VersionedAddressBook -> VersionedAddressBook : clear all state history
+VersionedAddressBook --> ModelManager : history cleared
+
+ModelManager -> ModelManager : logger.info("Memory cleanup completed. Undo functionality disabled")
+ModelManager --> [ : **Error thrown (memory cleanup attempted)**
+deactivate ModelManager
+deactivate VersionedAddressBook
+
+@enduml
