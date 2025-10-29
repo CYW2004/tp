@@ -1,0 +1,25 @@
+
+@startuml
+start
+if (Event exists?) then (no)
+  :Throw "Event not found";
+  stop
+else (yes)
+  :uniqueNames := removeDuplicates(memberNames);
+  repeat
+    :name := next uniqueNames;
+    if (member exists?) then (no)
+      :Throw "Member not found";
+      stop
+    endif
+    if (duplicate?) then (yes)
+      :add to duplicate list;
+    else
+      :addAttendance;
+      :add to added list;
+    endif
+  repeat while (more names?) is (yes)
+  :build result message;
+  stop
+endif
+@enduml

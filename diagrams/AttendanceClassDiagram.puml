@@ -1,0 +1,56 @@
+
+@startuml
+' Simplified UML class diagram for attendance
+class Attendance {
+  - eventId: EventId
+  - memberName: Name
+  - hasAttended: boolean
+  + markAttended(): Attendance
+  + markAbsent(): Attendance
+}
+
+class AddAttendanceCommand {
+  - eventId: EventId
+  - memberNames: List<Name>
+  + execute(model: Model): CommandResult
+}
+
+class MarkAttendanceCommand {
+  - eventId: EventId
+  - memberNames: List<Name>
+  + execute(model: Model): CommandResult
+}
+
+class UnmarkAttendanceCommand {
+  - eventId: EventId
+  - memberNames: List<Name>
+  + execute(model: Model): CommandResult
+}
+
+class AttendanceMessages <<utility>> {
+  + buildAddAttendanceResult(...)
+  + buildMarkAttendanceResult(...)
+  + buildUnmarkAttendanceResult(...)
+}
+
+class AttendanceCommandUtil <<utility>> {
+  + collectAttendanceByName(model, eventId)
+}
+
+class Model {
+  ...
+}
+
+AddAttendanceCommand --> AttendanceMessages : uses
+AddAttendanceCommand --> Attendance : creates
+AddAttendanceCommand --> Model : uses
+
+MarkAttendanceCommand --> AttendanceMessages : uses
+MarkAttendanceCommand --> AttendanceCommandUtil : uses
+MarkAttendanceCommand --> Model : uses
+
+UnmarkAttendanceCommand --> AttendanceMessages : uses
+UnmarkAttendanceCommand --> AttendanceCommandUtil : uses
+UnmarkAttendanceCommand --> Model : uses
+
+@enduml

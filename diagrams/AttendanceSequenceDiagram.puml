@@ -1,0 +1,29 @@
+
+@startuml
+actor User
+participant CLI as cli
+participant AddAttendanceCommand as addCmd
+participant Model
+participant Attendance as attendance
+participant AttendanceMessages as messages
+
+User -> cli : enter addattendance command
+cli -> addCmd : parse args & execute()
+addCmd -> Model : getEventByEventId(eventId)
+Model --> addCmd : Event / null
+addCmd -> Model : for each name: check memberExists & hasAttendance
+Model --> addCmd : boolean
+alt member not found
+    addCmd -> cli : throw CommandException
+else
+    alt not duplicate
+        addCmd -> Model : addAttendance(attendance)
+    else
+        note right: duplicate names are ignored
+    end
+end
+addCmd -> messages : buildAddAttendanceResult(...)
+messages --> addCmd : resultMessage
+addCmd --> cli : return CommandResult
+cli --> User : display result
+@enduml
