@@ -18,14 +18,13 @@ Class "<$documents>" as File UI_COLOR_T1
 
 
 UI -[#green]> Logic
-UI -right[#green]-> Model
+UI ..> Model
 Logic -[#blue]-> Storage
 Logic -down[#blue]-> Model
 Main -[#grey]-> UI
 Main -[#grey]-> Logic
 Main -[#grey]-> Storage
 Main -up[#grey]-> Model
-Main -down[hidden]-> Commons
 
 Storage -up[STORAGE_COLOR].> Model
 Storage .right[STORAGE_COLOR].>File

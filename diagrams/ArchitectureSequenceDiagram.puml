@@ -30,28 +30,35 @@ deactivate model
 logic -[LOGIC_COLOR]> command : execute(model)
 activate command LOGIC_COLOR_T2
 
-command -[LOGIC_COLOR_T2]> model : deletePerson(p)
-activate model MODEL_COLOR
+alt command succeeds
+  command -[LOGIC_COLOR_T2]> model : deletePerson(p)
+  activate model MODEL_COLOR
+  model --[MODEL_COLOR]> command
+  deactivate model
+  command --[LOGIC_COLOR_T2]> logic : CommandResult
+  deactivate command
 
-model --[MODEL_COLOR]> command
-deactivate model
+  logic -[LOGIC_COLOR]> storage : saveAddressBook(addressBook)
+  activate storage STORAGE_COLOR
+  storage -[STORAGE_COLOR]> storage : Save to file
+  activate storage STORAGE_COLOR_T1
+  storage --[STORAGE_COLOR]> storage
+  deactivate storage
+  storage --[STORAGE_COLOR]> logic
+  deactivate storage
 
-command --[LOGIC_COLOR_T2]> logic : CommandResult
-deactivate command
-
-logic -[LOGIC_COLOR]> storage : saveAddressBook(addressBook)
-activate storage STORAGE_COLOR
-
-storage -[STORAGE_COLOR]> storage : Save to file
-activate storage STORAGE_COLOR_T1
-storage --[STORAGE_COLOR]> storage
-deactivate storage
-
-storage --[STORAGE_COLOR]> logic
-deactivate storage
-
-logic --[LOGIC_COLOR]> ui : CommandResult
-deactivate logic
+  logic --[LOGIC_COLOR]> ui : CommandResult
+  deactivate logic
+else command fails
+  command --[LOGIC_COLOR_T2]> logic : CommandException
+  deactivate command
+  logic -[LOGIC_COLOR]> model : rollbackLastCommit()
+  activate model MODEL_COLOR
+  model --[MODEL_COLOR]> logic
+  deactivate model
+  logic --[LOGIC_COLOR]> ui : error message
+  deactivate logic
+end
 
 ui--[UI_COLOR]> user
 deactivate ui

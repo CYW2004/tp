@@ -15,6 +15,10 @@ Class PersonListPanel
 Class PersonCard
 Class StatusBarFooter
 Class CommandBox
+Class EventListPanel
+Class EventCard
+Class TaskListPanel
+Class TaskCard
 }
 
 package Model <<Rectangle>> {
@@ -33,10 +37,14 @@ UiManager -down-> "1" MainWindow
 MainWindow *-down->  "1" CommandBox
 MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" PersonListPanel
+MainWindow *-down-> "1" EventListPanel
+MainWindow *-down-> "1" TaskListPanel
 MainWindow *-down-> "1" StatusBarFooter
 MainWindow --> "0..1" HelpWindow
 
 PersonListPanel -down-> "*" PersonCard
+EventListPanel -down-> "*" EventCard
+TaskListPanel -down-> "*" TaskCard
 
 MainWindow -left-|> UiPart
 
@@ -44,10 +52,16 @@ ResultDisplay --|> UiPart
 CommandBox --|> UiPart
 PersonListPanel --|> UiPart
 PersonCard --|> UiPart
+EventListPanel --|> UiPart
+EventCard --|> UiPart
+TaskListPanel --|> UiPart
+TaskCard --|> UiPart
 StatusBarFooter --|> UiPart
 HelpWindow --|> UiPart
 
 PersonCard ..> Model
+EventCard ..> Model
+TaskCard ..> Model
 UiManager -right-> Logic
 MainWindow -left-> Logic
 

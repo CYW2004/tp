@@ -14,11 +14,27 @@ Class UserPrefs
 
 Class UniquePersonList
 Class Person
-Class Address
 Class Email
 Class Name
 Class Phone
 Class Tag
+Class Year
+Class StudentNumber
+Class Role
+Class DietaryRequirements
+
+Class UniqueEventList
+Class Event
+Class EventId
+
+Class UniqueTaskList
+Class Task
+
+Class UniqueAttendanceList
+Class Attendance
+
+Class Budget
+Class Money
 
 Class I #FFFFFF
 }
@@ -36,12 +52,27 @@ ModelManager -right-> "1" UserPrefs
 UserPrefs .up.|> ReadOnlyUserPrefs
 
 AddressBook *--> "1" UniquePersonList
+AddressBook *--> "1" UniqueEventList
+AddressBook *--> "1" UniqueTaskList
+AddressBook *--> "1" UniqueAttendanceList
+AddressBook --> "0..1" Budget
+
 UniquePersonList --> "~* all" Person
+UniqueEventList --> "~* all" Event
+UniqueTaskList --> "~* all" Task
+UniqueAttendanceList --> "~* all" Attendance
+
 Person *--> Name
-Person *--> Phone
+Person *--> Year
+Person *--> StudentNumber
 Person *--> Email
-Person *--> Address
+Person *--> Phone
+Person *--> DietaryRequirements
+Person *--> Role
 Person *--> "*" Tag
+
+Event *--> EventId
+Budget *--> Money
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
@@ -51,4 +82,6 @@ Phone -[hidden]right-> Address
 Address -[hidden]right-> Email
 
 ModelManager --> "~* filtered" Person
+ModelManager --> "~* filtered" Event
+ModelManager --> "~* filtered" Task
 @enduml
