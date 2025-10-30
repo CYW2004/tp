@@ -1,5 +1,7 @@
 @startuml
-skin rose
+!include style.puml
+skinparam ActivityBackgroundColor LOGIC_COLOR_T1
+skinparam ActivityBorderColor LOGIC_COLOR
 skinparam ActivityFontSize 15
 skinparam ArrowFontSize 12
 start

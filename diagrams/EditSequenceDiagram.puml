@@ -1,0 +1,120 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":EditCommandParser" as EditCommandParser LOGIC_COLOR
+participant "e:EditCommand" as EditCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant ":AddressBook" as AddressBook MODEL_COLOR
+participant "p:Person" as Person MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
+[-> LogicManager : execute("edit 1 n/NewName...")
+activate LogicManager
+
+LogicManager -> AddressBookParser : parseCommand("edit 1 n/NewName...")
+activate AddressBookParser
+
+create EditCommandParser
+AddressBookParser -> EditCommandParser
+activate EditCommandParser
+
+EditCommandParser --> AddressBookParser
+deactivate EditCommandParser
+
+AddressBookParser -> EditCommandParser : parse("1 n/NewName...")
+activate EditCommandParser
+
+create EditCommand
+EditCommandParser -> EditCommand
+activate EditCommand
+
+EditCommand --> EditCommandParser
+deactivate EditCommand
+
+EditCommandParser --> AddressBookParser : e
+deactivate EditCommandParser
+
+AddressBookParser --> LogicManager : e
+deactivate AddressBookParser
+
+LogicManager -> Model : commit()
+activate Model
+Model --> LogicManager
+deactivate Model
+
+LogicManager -> EditCommand : execute(m)
+activate EditCommand
+
+EditCommand -> Model : getFilteredPersonList()
+activate Model
+Model --> EditCommand : lastShownList
+deactivate Model
+
+alt invalid index
+    EditCommand --> LogicManager : throw CommandException
+else
+    EditCommand -> EditCommand : createEditedPerson(personToEdit, descriptor)
+    activate EditCommand
+
+    EditCommand --> EditCommand : editedPerson
+    deactivate EditCommand
+
+    EditCommand -> Model : hasPerson(editedPerson)
+    activate Model
+    Model --> EditCommand : boolean
+    deactivate Model
+
+    alt duplicate person
+        EditCommand --> LogicManager : throw CommandException
+    else
+        EditCommand -> Model : setPerson(personToEdit, editedPerson)
+        activate Model
+
+        Model -> AddressBook : setPerson(personToEdit, editedPerson)
+        activate AddressBook
+
+        AddressBook --> Model
+        deactivate AddressBook
+
+        Model --> EditCommand
+        deactivate Model
+
+        EditCommand -> Model : updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)
+        activate Model
+        Model --> EditCommand
+        deactivate Model
+
+        create CommandResult
+        EditCommand -> CommandResult
+        activate CommandResult
+
+        CommandResult --> EditCommand
+        deactivate CommandResult
+
+        EditCommand --> LogicManager : r
+    end
+end
+
+deactivate EditCommand
+
+LogicManager -> Storage : saveAddressBook(model.getAddressBook())
+activate Storage
+Storage --> LogicManager
+deactivate Storage
+
+[<--LogicManager : r
+deactivate LogicManager
+@enduml
+

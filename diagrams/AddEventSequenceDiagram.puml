@@ -1,0 +1,105 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":AddEventCommandParser" as AddEventCommandParser LOGIC_COLOR
+participant "a:AddEventCommand" as AddEventCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant ":AddressBook" as AddressBook MODEL_COLOR
+participant ":UniqueEventList" as UniqueEventList MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
+[-> LogicManager : execute("addevent e/E001 d/2023-08-15 desc/Orientation")
+activate LogicManager
+
+LogicManager -> AddressBookParser : parseCommand("addevent e/E001...")
+activate AddressBookParser
+
+create AddEventCommandParser
+AddressBookParser -> AddEventCommandParser
+activate AddEventCommandParser
+
+AddEventCommandParser --> AddressBookParser
+deactivate AddEventCommandParser
+
+AddressBookParser -> AddEventCommandParser : parse("e/E001 d/2023-08-15 desc/Orientation")
+activate AddEventCommandParser
+
+create AddEventCommand
+AddEventCommandParser -> AddEventCommand
+activate AddEventCommand
+
+AddEventCommand --> AddEventCommandParser
+deactivate AddEventCommand
+
+AddEventCommandParser --> AddressBookParser : a
+deactivate AddEventCommandParser
+
+AddressBookParser --> LogicManager : a
+deactivate AddressBookParser
+
+LogicManager -> Model : commit()
+activate Model
+Model --> LogicManager
+deactivate Model
+
+LogicManager -> AddEventCommand : execute(m)
+activate AddEventCommand
+
+AddEventCommand -> Model : hasEvent(event)
+activate Model
+Model --> AddEventCommand : boolean
+deactivate Model
+
+alt duplicate event
+    AddEventCommand --> LogicManager : throw CommandException
+else
+    AddEventCommand -> Model : addEvent(event)
+    activate Model
+
+    Model -> AddressBook : addEvent(event)
+    activate AddressBook
+
+    AddressBook -> UniqueEventList : add(event)
+    activate UniqueEventList
+    UniqueEventList --> AddressBook
+    deactivate UniqueEventList
+
+    AddressBook --> Model
+    deactivate AddressBook
+
+    Model --> AddEventCommand
+    deactivate Model
+
+    create CommandResult
+    AddEventCommand -> CommandResult
+    activate CommandResult
+
+    CommandResult --> AddEventCommand
+    deactivate CommandResult
+
+    AddEventCommand --> LogicManager : r
+end
+
+deactivate AddEventCommand
+
+LogicManager -> Storage : saveAddressBook(model.getAddressBook())
+activate Storage
+Storage --> LogicManager
+deactivate Storage
+
+[<--LogicManager : r
+deactivate LogicManager
+@enduml
+

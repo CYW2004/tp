@@ -1,29 +1,80 @@
-
 @startuml
-actor User
-participant CLI as cli
-participant AddAttendanceCommand as addCmd
-participant Model
-participant Attendance as attendance
-participant AttendanceMessages as messages
+!include style.puml
+skinparam ArrowFontStyle plain
 
-User -> cli : enter addattendance command
-cli -> addCmd : parse args & execute()
-addCmd -> Model : getEventByEventId(eventId)
-Model --> addCmd : Event / null
-addCmd -> Model : for each name: check memberExists & hasAttendance
-Model --> addCmd : boolean
-alt member not found
-    addCmd -> cli : throw CommandException
+box Logic LOGIC_COLOR_T1
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":AddAttendanceCommandParser" as Parser LOGIC_COLOR_T2
+participant "a:AddAttendanceCommand" as AddAttendanceCommand LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant ":Event" as Event MODEL_COLOR_T2
+participant ":Attendance" as Attendance MODEL_COLOR
+end box
+
+actor User USER_COLOR
+
+User -[USER_COLOR]> AddressBookParser : "addattendance e/E001 n/Alice n/Bob"
+activate AddressBookParser LOGIC_COLOR
+
+AddressBookParser -> Parser : parse("e/E001 n/Alice n/Bob")
+activate Parser LOGIC_COLOR_T2
+
+create AddAttendanceCommand
+Parser -> AddAttendanceCommand
+activate AddAttendanceCommand LOGIC_COLOR
+
+AddAttendanceCommand --> Parser
+deactivate AddAttendanceCommand
+
+Parser --> AddressBookParser : a
+deactivate Parser
+
+AddressBookParser --> User : AddAttendanceCommand
+deactivate AddressBookParser
+
+User -[USER_COLOR]> AddAttendanceCommand : execute(Model)
+activate AddAttendanceCommand LOGIC_COLOR
+
+AddAttendanceCommand -> Model : getEventByEventId(eventId)
+activate Model MODEL_COLOR
+Model --> AddAttendanceCommand : Event / null
+deactivate Model
+
+alt Event not found
+    AddAttendanceCommand --> User : throw CommandException
 else
-    alt not duplicate
-        addCmd -> Model : addAttendance(attendance)
+    AddAttendanceCommand -> Model : for each name: check memberExists & hasAttendance
+    activate Model MODEL_COLOR
+    Model --> AddAttendanceCommand : boolean
+    deactivate Model
+
+    alt member not found
+        AddAttendanceCommand --> User : throw CommandException
     else
-        note right: duplicate names are ignored
+        alt not duplicate
+            AddAttendanceCommand -> Model : addAttendance(attendance)
+            activate Model MODEL_COLOR
+            Model -> Attendance
+            activate Attendance MODEL_COLOR
+            Attendance --> Model
+            deactivate Attendance
+            Model --> AddAttendanceCommand
+            deactivate Model
+        else
+            note right: duplicate names are ignored
+        end
     end
+
+    create seedu.address.logic.commands.AttendanceMessages as Messages
+    AddAttendanceCommand -> Messages : buildAddAttendanceResult(...)
+    activate Messages LOGIC_COLOR_T1
+    Messages --> AddAttendanceCommand : resultMessage
+    deactivate Messages
+
+    AddAttendanceCommand --> User : CommandResult
 end
-addCmd -> messages : buildAddAttendanceResult(...)
-messages --> addCmd : resultMessage
-addCmd --> cli : return CommandResult
-cli --> User : display result
+deactivate AddAttendanceCommand
 @enduml
