@@ -45,6 +45,7 @@ deactivate AddEventCommand
 
 AddEventCommandParser --> AddressBookParser : a
 deactivate AddEventCommandParser
+destroy AddEventCommandParser
 
 AddressBookParser --> LogicManager : a
 deactivate AddressBookParser
