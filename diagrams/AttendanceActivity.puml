@@ -5,25 +5,25 @@ skinparam ActivityBorderColor LOGIC_COLOR
 skinparam ActivityFontSize 15
 
 start
-if (Event exists?) then (no)
+if () then ([event missing])
   :Throw "Event not found";
   stop
-else (yes)
+else ([event exists])
   :uniqueNames := removeDuplicates(memberNames);
   repeat
     :name := next uniqueNames;
-    if (member exists?) then (no)
-      :Throw "Member not found";
-      stop
+    if () then ([member missing])
+      :Record missing member;
+    else ([member exists])
+      if () then ([duplicate])
+        :Record duplicate member;
+      else ([fresh entry])
+        :addAttendance;
+        :Record added member;
+      endif
     endif
-    if (duplicate?) then (yes)
-      :add to duplicate list;
-    else
-      :addAttendance;
-      :add to added list;
-    endif
-  repeat while (more names?) is (yes)
-  :build result message;
-  stop
+repeat while () is ([More names])
+:build result message;
+stop
 endif
 @enduml

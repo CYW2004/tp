@@ -30,14 +30,15 @@ class UnmarkAttendanceCommand {
   + execute(model: Model): CommandResult
 }
 
-class AttendanceMessages <<utility>> {
-  + buildAddAttendanceResult(...)
-  + buildMarkAttendanceResult(...)
-  + buildUnmarkAttendanceResult(...)
+class AttendanceMessages {
+  {static} buildAddAttendanceResult(eventId, added, duplicates, missing)
+  {static} buildMarkAttendanceResult(eventId, newlyMarked, alreadyMarked, missing)
+  {static} buildUnmarkAttendanceResult(eventId, newlyAbsent, alreadyAbsent, missing)
+  {static} buildRemoveAttendanceResult(eventId, removedMembers, missing)
 }
 
-class AttendanceCommandUtil <<utility>> {
-  + collectAttendanceByName(model, eventId)
+class AttendanceCommandUtil {
+  {static} collectAttendanceByName(model, eventId)
 }
 
 class Model {

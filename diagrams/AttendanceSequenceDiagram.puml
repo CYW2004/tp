@@ -10,7 +10,6 @@ end box
 
 box Model MODEL_COLOR_T1
 participant "m:Model" as Model MODEL_COLOR
-participant ":Event" as Event MODEL_COLOR_T2
 participant ":Attendance" as Attendance MODEL_COLOR
 end box
 
@@ -68,13 +67,15 @@ else
         end
     end
 
-    create seedu.address.logic.commands.AttendanceMessages as Messages
+    create "AttendanceMessages" as Messages LOGIC_COLOR
     AddAttendanceCommand -> Messages : buildAddAttendanceResult(...)
     activate Messages LOGIC_COLOR_T1
     Messages --> AddAttendanceCommand : resultMessage
     deactivate Messages
 
     AddAttendanceCommand --> User : CommandResult
+    deactivate AddAttendanceCommand
 end
+
 deactivate AddAttendanceCommand
 @enduml

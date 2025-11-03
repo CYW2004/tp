@@ -6,38 +6,26 @@ skinparam ActivityFontSize 15
 skinparam ArrowFontSize 12
 start
 :User executes command;
+:Parse command;
 
-'Since the beta syntax does not support placing the condition outside the
-'diamond we place it as the true branch instead.
-
-if (Command type?) then ([add])
-  :Create new Person object;
-  :Save updated person to personList;
-  --> "Merge";
-elseif ([delete])
-  :Identify person by INDEX;
-  :Remove person from personList;
-  --> "Merge";
-elseif ([edit])
-  :Identify person by INDEX;
-  :Update fields (name, phone, email, etc.);
-  :Save modified person to personList;
-  --> "Merge";
-elseif ([addevent])
-  :Create new Event (EVENTID, DATE, DESC);
-  :Save event to eventList;
-  --> "Merge";
-elseif ([addtask])
-  :Create new Task (TITLE, DEADLINE);
-  :Save task to taskList;
-  --> "Merge";
-elseif ([budget set])
-  :Set total amount and duration;
-  :Update budget records;
-  --> "Merge";
-else ([other])
-  :Execute other command logic;
-  --> "Merge";
+if (Command modifies address book?) then (yes)
+  :Commit current state\n(Model#commit());
+  :Execute command;
+  if (Command execution successful?) then (yes)
+    :Save to storage;
+    :Return CommandResult;
+  else (no)
+    :Rollback last commit\n(Model#rollbackLastCommit());
+    :Throw CommandException;
+  endif
+else (no)
+  :Execute command;
+  :Return CommandResult;
+  note right
+    Read-only commands
+    (e.g., list, find)
+    do not commit state
+  end note
 endif
 
 stop
